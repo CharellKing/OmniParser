@@ -12,6 +12,7 @@ import supervision as sv
 from ultralytics import YOLO
 from transformers import Blip2Processor, Blip2ForConditionalGeneration
 from transformers import AutoProcessor, AutoModelForCausalLM 
+from utils.box_annotator import BoxAnnotator
 
 
 class Label:
@@ -22,6 +23,7 @@ class Label:
         self.ocr_bbox = ocr_bbox
         self.text_scale = text_scale
         self.text_padding = text_padding
+        self.draw_bbox_config = draw_bbox_config
         self.ocr_text = ocr_text
         self.use_local_semantics = use_local_semantics
         self.iou_threshold = iou_threshold
@@ -38,8 +40,6 @@ class Label:
 
 
     def get_caption_model_processor(self):
-        if not self.device:
-            self.device = "cuda" if torch.cuda.is_available() else "cpu"
         if self.caption_model_name == "blip2":
             processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b")
             if self.device == 'cpu':
@@ -290,7 +290,7 @@ class Label:
 
         labels = [f"{phrase}" for phrase in range(boxes.shape[0])]
 
-        box_annotator = sv.BoxAnnotator(text_scale=text_scale, text_padding=text_padding,text_thickness=text_thickness,thickness=thickness) # 0.8 for mobile/web, 0.3 for desktop # 0.4 for mind2web
+        box_annotator = BoxAnnotator(text_scale=text_scale, text_padding=text_padding,text_thickness=text_thickness,thickness=thickness) # 0.8 for mobile/web, 0.3 for desktop # 0.4 for mind2web
         annotated_frame = self.image.copy()
         annotated_frame = box_annotator.annotate(scene=annotated_frame, detections=detections, labels=labels, image_size=(w,h))
 

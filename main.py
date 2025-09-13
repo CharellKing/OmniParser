@@ -3,6 +3,7 @@ from fastapi_mcp import FastApiMCP
 from pydantic import BaseModel, Field
 from typing import Optional
 from PIL import Image
+from fastapi.responses import JSONResponse
 import io
 
 from analyzer import GuiScreenAnalyzer
@@ -44,7 +45,7 @@ async def analyze_gui_screen_endpoint(
     
     analyzer = GuiScreenAnalyzer(pil_image, box_threshold, iou_threshold, use_paddleocr, imgsz)
     label_image, result = analyzer.process()
-    return result
+    return JSONResponse(content=result)
 
 # Create the MCP server from the FastAPI app with proper configuration
 mcp = FastApiMCP(

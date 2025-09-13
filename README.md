@@ -13,3 +13,6 @@ Ensure you have the V2 weights downloaded in weights folder (ensure caption weig
 ```bash
    for f in icon_detect/{train_args.yaml,model.pt,model.yaml} icon_caption/{config.json,generation_config.json,model.safetensors}; do poetry run huggingface-cli download microsoft/OmniParser-v2.0 "$f" --local-dir weights; done
 ```
+
+** find the flash_atten compatible with cuda version from here, https://github.com/mjun0812/flash-attention-prebuild-wheels.
+
