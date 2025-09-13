@@ -10,20 +10,18 @@ from PIL import Image
 from torchvision.ops import box_convert
 import supervision as sv
 from ultralytics import YOLO
-
-
+from transformers import Blip2Processor, Blip2ForConditionalGeneration
+from transformers import AutoProcessor, AutoModelForCausalLM 
 
 
 class Label:
-    yolo_model = YOLO(model_path='weights/icon_detect/model.pt')
-    def __init__(self, image: Image.Image, model=None, box_threshold=0.01, output_coord_in_ratio=False, ocr_bbox=None, text_scale=0.4, text_padding=5, draw_bbox_config=None, caption_model_processor=None, ocr_text=[], use_local_semantics=True, iou_threshold=0.9,prompt=None, scale_img=False, imgsz=None, batch_size=128):
+    def __init__(self, image: Image.Image, model=None, box_threshold=0.01, output_coord_in_ratio=False, ocr_bbox=None, text_scale=0.4, text_padding=5, draw_bbox_config=None, ocr_text=[], use_local_semantics=True, iou_threshold=0.9,prompt=None, scale_img=False, imgsz=None, batch_size=128):
         self.image = image
         self.box_threshold = box_threshold
         self.output_coord_in_ratio = output_coord_in_ratio
         self.ocr_bbox = ocr_bbox
         self.text_scale = text_scale
         self.text_padding = text_padding
-        self.caption_model_processor = caption_model_processor
         self.ocr_text = ocr_text
         self.use_local_semantics = use_local_semantics
         self.iou_threshold = iou_threshold
@@ -31,6 +29,36 @@ class Label:
         self.scale_img = scale_img
         self.imgsz = imgsz
         self.batch_size = batch_size
+        self.yolo_model = YOLO('weights/icon_detect/model.pt')
+        self.caption_model_name = 'florence2'
+        self.caption_model_path = "weights/icon_caption_florence"
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+        self.caption_model_processor = self.get_caption_model_processor()
+
+
+    def get_caption_model_processor(self):
+        if not self.device:
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        if self.caption_model_name == "blip2":
+            processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b")
+            if self.device == 'cpu':
+                model = Blip2ForConditionalGeneration.from_pretrained(
+                self.caption_model_path, device_map=None, torch_dtype=torch.float32
+            ) 
+            else:
+                model = Blip2ForConditionalGeneration.from_pretrained(
+                self.caption_model_path, device_map=None, torch_dtype=torch.float16
+            ).to(self.device)
+        elif self.caption_model_name == "florence2":
+            processor = AutoProcessor.from_pretrained("microsoft/Florence-2-base", trust_remote_code=True)
+            if self.device == 'cpu':
+                model = AutoModelForCausalLM.from_pretrained(self.caption_model_path, torch_dtype=torch.float32, trust_remote_code=True)
+            else:
+                model = AutoModelForCausalLM.from_pretrained(self.caption_model_path, torch_dtype=torch.float16, trust_remote_code=True).to(self.device)
+        return {'model': model.to(self.device), 'processor': processor}
+
+
 
     def predict_yolo(self):
         """ Use huggingface model to replace the original model

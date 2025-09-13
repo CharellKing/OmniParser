@@ -8,3 +8,4 @@ __pycache__
 cookie.txt
 .claude
 .venv
+weights

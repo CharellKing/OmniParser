@@ -1,8 +1,10 @@
 import base64
 import io
+import sys
+import os
 from typing import Union
 from PIL import Image
-from paddleocr import PaddleOCR
+
 from utils.label import Label
 from utils.ocr import OCR
 
@@ -32,7 +34,7 @@ class GuiScreenAnalyzer:
         ocr_bbox_rslt, is_goal_filtered = ocr.check_ocr_box()
 
         text, ocr_bbox = ocr_bbox_rslt
-        label = Label(self.image, box_threshold=self.box_threshold, output_coord_in_ratio=True, ocr_bbox=ocr_bbox,draw_bbox_config=self.draw_bbox_config, caption_model_processor=self.caption_model_processor, ocr_text=text,iou_threshold=self.iou_threshold, imgsz=self.imgsz,)
+        label = Label(self.image, box_threshold=self.box_threshold, output_coord_in_ratio=True, ocr_bbox=ocr_bbox,draw_bbox_config=self.draw_bbox_config, ocr_text=text,iou_threshold=self.iou_threshold, imgsz=self.image_size,)
         dino_labled_img, label_coordinates, parsed_content_list = label.process()
         image = Image.open(io.BytesIO(base64.b64decode(dino_labled_img)))
         print('finish processing')

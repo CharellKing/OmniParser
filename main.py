@@ -2,6 +2,8 @@ from fastapi import FastAPI, File, UploadFile, Form
 from fastapi_mcp import FastApiMCP
 from pydantic import BaseModel, Field
 from typing import Optional
+from PIL import Image
+import io
 
 from analyzer import GuiScreenAnalyzer
 
@@ -26,7 +28,7 @@ def create_item_endpoint(item: Item):
     return item
 
 @app.post("/analyze_gui_screen", operation_id="analyze_gui_screen")
-def analyze_gui_screen_endpoint(
+async def analyze_gui_screen_endpoint(
     image: UploadFile = File(...),
     box_threshold: float = Form(0.05, ge=0.01, le=1),
     iou_threshold: float = Form(0.1, ge=0.01, le=1),
@@ -36,15 +38,25 @@ def analyze_gui_screen_endpoint(
     """
     Analyze a GUI screen from an image.
     """
-    analyzer = GuiScreenAnalyzer(image, box_threshold, iou_threshold, use_paddleocr, imgsz)
-    image, result = analyzer.process()
+    # Convert UploadFile to PIL.Image.Image
+    image_content = await image.read()
+    pil_image = Image.open(io.BytesIO(image_content))
+    
+    analyzer = GuiScreenAnalyzer(pil_image, box_threshold, iou_threshold, use_paddleocr, imgsz)
+    label_image, result = analyzer.process()
     return result
 
-# Create the MCP server from the FastAPI app
-mcp = FastApiMCP(app)
+# Create the MCP server from the FastAPI app with proper configuration
+mcp = FastApiMCP(
+    app,
+    name="OmniParser MCP Server",
+    description="MCP server for OmniParser, a GUI screen analysis tool",
+    include_operations=["get_item", "create_item", "analyze_gui_screen"]
+)
+
 # Mount the MCP server at /mcp
 mcp.mount()
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8080)

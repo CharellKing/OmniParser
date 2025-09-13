@@ -1,5 +1,4 @@
 from typing import Union
-from paddleocr import PaddleOCR
 import easyocr
 from PIL import Image
 import numpy as np
@@ -7,20 +6,7 @@ import cv2
 from matplotlib import pyplot as plt
 
 
-
 class OCR:
-    paddle_ocr = PaddleOCR(
-        lang='ch,en',
-        use_angle_cls=False,
-        use_gpu=False,  # using cuda will conflict with pytorch in the same process
-        show_log=False,
-        max_batch_size=1024,
-        use_dilation=True,  # improves accuracy
-        det_db_score_mode='slow',  # improves accuracy
-        rec_batch_num=1024)
-
-    easy_ocr = easyocr.Reader(['ch_sim', 'en'])
-
     def __init__(self, image_source: Union[str, Image.Image], display_img = True, output_bb_format='xywh', goal_filtering=None, easyocr_args=None, use_paddleocr=False):
         if isinstance(image_source, str):
             self.image = Image.open(image_source)
@@ -46,6 +32,28 @@ class OCR:
         return x, y, xp, yp
 
     def check_ocr_box(self):
+        # Import PaddleOCR only when needed and handle errors
+        PADDLE_OCR_AVAILABLE = False
+        paddle_ocr = None
+        
+        if self.use_paddleocr:
+            try:
+                from paddleocr import PaddleOCR
+                PADDLE_OCR_AVAILABLE = True
+                paddle_ocr = PaddleOCR(
+                    lang='en',
+                    use_angle_cls=False,
+                    use_gpu=False,  # using cuda will conflict with pytorch in the same process
+                    show_log=False,
+                    max_batch_size=1024,
+                    use_dilation=True,  # improves accuracy
+                    det_db_score_mode='slow',  # improves accuracy
+                    rec_batch_num=1024)
+            except (OSError, ImportError) as e:
+                print(f"Warning: PaddleOCR could not be imported due to: {e}")
+                print("Falling back to EasyOCR")
+                PADDLE_OCR_AVAILABLE = False
+
         if isinstance(self.image, str):
             self.image = Image.open(self.image)
 
@@ -54,18 +62,20 @@ class OCR:
             self.image = self.image.convert('RGB')
         image_np = np.array(self.image)
         w, h = self.image.size
-        if self.use_paddleocr:
+        if self.use_paddleocr and PADDLE_OCR_AVAILABLE:
             if self.easyocr_args is None:
                 text_threshold = 0.5
             else:
                 text_threshold = self.easyocr_args['text_threshold']
-            result = self.paddle_ocr.ocr(image_np, cls=False)[0]
+            result = paddle_ocr.ocr(image_np, cls=False)[0]
             coord = [item[0] for item in result if item[1][1] > text_threshold]
             text = [item[1][0] for item in result if item[1][1] > text_threshold]
         else:  # EasyOCR
+            # Initialize EasyOCR only when needed
+            easy_ocr = easyocr.Reader(['ch_sim', 'en'])
             if self.easyocr_args is None:
                 self.easyocr_args = {}
-            result = self.easy_ocr.readtext(image_np, **self.easyocr_args)
+            result = easy_ocr.readtext(image_np, **self.easyocr_args)
             coord = [item[0] for item in result]
             text = [item[1] for item in result]
         
