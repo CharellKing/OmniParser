@@ -1,11 +1,5 @@
 from typing import Union
-try:
-    from paddleocr import PaddleOCR
-    PADDLE_OCR_AVAILABLE = True
-except ImportError:
-    PADDLE_OCR_AVAILABLE = False
-    PaddleOCR = None
-
+from paddleocr import PaddleOCR
 import easyocr
 from PIL import Image
 import numpy as np
@@ -15,25 +9,19 @@ from matplotlib import pyplot as plt
 
 
 class OCR:
-    if PADDLE_OCR_AVAILABLE:
-        paddle_ocr = PaddleOCR(
-            lang='en',  # other lang also available
-            use_angle_cls=False,
-            use_gpu=False,  # using cuda will conflict with pytorch in the same process
-            show_log=False,
-            max_batch_size=1024,
-            use_dilation=True,  # improves accuracy
-            det_db_score_mode='slow',  # improves accuracy
-            rec_batch_num=1024)
-    else:
-        paddle_ocr = None
+    paddle_ocr = PaddleOCR(
+        lang='ch,en',
+        use_angle_cls=False,
+        use_gpu=False,  # using cuda will conflict with pytorch in the same process
+        show_log=False,
+        max_batch_size=1024,
+        use_dilation=True,  # improves accuracy
+        det_db_score_mode='slow',  # improves accuracy
+        rec_batch_num=1024)
 
-    easy_ocr = easyocr.Reader(['en'])
+    easy_ocr = easyocr.Reader(['ch_sim', 'en'])
 
     def __init__(self, image_source: Union[str, Image.Image], display_img = True, output_bb_format='xywh', goal_filtering=None, easyocr_args=None, use_paddleocr=False):
-        if not PADDLE_OCR_AVAILABLE and use_paddleocr:
-            raise RuntimeError("PaddleOCR is not available. Please install paddleocr package.")
-        
         if isinstance(image_source, str):
             self.image = Image.open(image_source)
         else:
@@ -61,7 +49,7 @@ class OCR:
         if isinstance(self.image, str):
             self.image = Image.open(self.image)
 
-        if self.image.mode == 'RGBA':  # Fixed typo: was "mage_source"
+        if self.image.mode == 'RGBA':
             # Convert RGBA to RGB to avoid alpha channel issues
             self.image = self.image.convert('RGB')
         image_np = np.array(self.image)
@@ -81,7 +69,7 @@ class OCR:
             coord = [item[0] for item in result]
             text = [item[1] for item in result]
         
-        if self.display_img:  # Fixed typo: was "self. display_img"
+        if self.display_img:
             opencv_img = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
             bb = []
             for item in coord:
