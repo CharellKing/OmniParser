@@ -45,6 +45,8 @@ async def analyze_gui_screen_endpoint(
     
     analyzer = GuiScreenAnalyzer(pil_image, box_threshold, iou_threshold, use_paddleocr, imgsz)
     label_image, result = analyzer.process()
+    # save label_image to local
+    # label_image.save("label_image.jpg")
     return JSONResponse(content=result)
 
 # Create the MCP server from the FastAPI app with proper configuration

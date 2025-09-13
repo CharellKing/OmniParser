@@ -9,3 +9,6 @@ cookie.txt
 .claude
 .venv
 weights
+*.jpg
+*.whl
+.vscode
