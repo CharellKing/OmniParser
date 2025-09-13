@@ -3,6 +3,8 @@ from fastapi_mcp import FastApiMCP
 from pydantic import BaseModel, Field
 from typing import Optional
 
+from analyzer import GuiScreenAnalyzer
+
 app = FastAPI()
 
 class Item(BaseModel):
@@ -34,14 +36,9 @@ def analyze_gui_screen_endpoint(
     """
     Analyze a GUI screen from an image.
     """
-    return {
-        "filename": image.filename,
-        "content_type": image.content_type,
-        "box_threshold": box_threshold,
-        "iou_threshold": iou_threshold,
-        "use_paddleocr": use_paddleocr,
-        "imgsz": imgsz,
-    }
+    analyzer = GuiScreenAnalyzer(image, box_threshold, iou_threshold, use_paddleocr, imgsz)
+    image, result = analyzer.process()
+    return result
 
 # Create the MCP server from the FastAPI app
 mcp = FastApiMCP(app)
