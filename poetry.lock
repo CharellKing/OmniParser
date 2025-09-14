@@ -2873,10 +2873,12 @@ httpx-sse = ">=0.4"
 jsonschema = ">=4.20.0"
 pydantic = ">=2.11.0,<3.0.0"
 pydantic-settings = ">=2.5.2"
+python-dotenv = {version = ">=1.0.0", optional = true, markers = "extra == \"cli\""}
 python-multipart = ">=0.0.9"
 pywin32 = {version = ">=310", markers = "sys_platform == \"win32\""}
 sse-starlette = ">=1.6.1"
 starlette = ">=0.27"
+typer = {version = ">=0.16.0", optional = true, markers = "extra == \"cli\""}
 uvicorn = {version = ">=0.31.1", markers = "sys_platform != \"emscripten\""}
 
 [package.extras]
@@ -7870,4 +7872,4 @@ reference = "tsinghua"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "e28e7b57923daece905c0b12158fb7616fc8d5c5cce6d4f8d5d90142547d5e61"
+content-hash = "a08ecee1d3b0b59eb63f19158a690aea97b5f51e5c96b5f234a6c1dfb10cdab0"

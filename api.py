@@ -1,5 +1,4 @@
 from fastapi import FastAPI, File, UploadFile, Form
-from fastapi_mcp import FastApiMCP
 from pydantic import BaseModel, Field
 from typing import Optional
 from PIL import Image
@@ -49,16 +48,6 @@ async def analyze_gui_screen_endpoint(
     # label_image.save("label_image.jpg")
     return JSONResponse(content=result)
 
-# Create the MCP server from the FastAPI app with proper configuration
-mcp = FastApiMCP(
-    app,
-    name="OmniParser MCP Server",
-    description="MCP server for OmniParser, a GUI screen analysis tool",
-    include_operations=["get_item", "create_item", "analyze_gui_screen"]
-)
-
-# Mount the MCP server at /mcp
-mcp.mount()
 
 if __name__ == "__main__":
     import uvicorn
