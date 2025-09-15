@@ -63,9 +63,10 @@ async def analyze_gui_screen_endpoint(
     # convert parsed_content_list to GUIElementBox
     gui_element_box_list = []
     for parsed_content in parsed_content_list:
+        bbox = parsed_content['bbox']
         gui_element_box_list.append(GUIElementBox(
             type=parsed_content['type'],
-            bbox=parsed_content['bbox'],
+            bbox=BoxBoundary(left=bbox[0], top=bbox[1], right=bbox[2], bottom=bbox[3]),
             interactivity=parsed_content['interactivity'],
             content=parsed_content['content'],
             source=parsed_content['source'],
