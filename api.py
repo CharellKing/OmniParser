@@ -1,4 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, Form
+from fastapi_mcp import FastApiMCP
 from pydantic import BaseModel, Field
 from typing import Optional
 from PIL import Image
@@ -6,26 +7,12 @@ from fastapi.responses import JSONResponse
 import io
 
 from analyzer import GuiScreenAnalyzer
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
+mcp = FastApiMCP(app)
+mcp.mount()
 
-class Item(BaseModel):
-    name: str
-    price: float
-
-@app.get("/items/{item_id}", operation_id="get_item")
-def get_item_endpoint(item_id: int, q: str | None = None):
-    """
-    Get an item by its ID.
-    """
-    return {"item_id": item_id, "q": q}
-
-@app.post("/items/", operation_id="create_item")
-def create_item_endpoint(item: Item):
-    """
-    Create an item.
-    """
-    return item
 
 @app.post("/analyze_gui_screen", operation_id="analyze_gui_screen")
 async def analyze_gui_screen_endpoint(
@@ -48,6 +35,9 @@ async def analyze_gui_screen_endpoint(
     # label_image.save("label_image.jpg")
     return JSONResponse(content=result)
 
+
+# Mount static files directory
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 if __name__ == "__main__":
     import uvicorn
