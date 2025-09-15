@@ -37,6 +37,4 @@ class GuiScreenAnalyzer:
         label = Label(self.image, box_threshold=self.box_threshold, output_coord_in_ratio=True, ocr_bbox=ocr_bbox,draw_bbox_config=self.draw_bbox_config, ocr_text=text,iou_threshold=self.iou_threshold, imgsz=self.image_size,)
         dino_labled_img, label_coordinates, parsed_content_list = label.process()
         image = Image.open(io.BytesIO(base64.b64decode(dino_labled_img)))
-        print('finish processing')
-        parsed_content_list = '\n'.join([f'icon {i}: ' + str(v) for i,v in enumerate(parsed_content_list)])
-        return image, str(parsed_content_list)
+        return image, parsed_content_list

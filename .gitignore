@@ -12,3 +12,4 @@ weights
 *.jpg
 *.whl
 .vscode
+static
